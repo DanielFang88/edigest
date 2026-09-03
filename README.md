@@ -48,6 +48,15 @@ saves the complete digest as a dated text file under
 `~/Desktop/Campus Digests/YYYY-MM-DD.txt`. The notification is best-effort,
 so the scheduled update still succeeds if no graphical desktop is active.
 
+## Acknowledgments
+
+- [`edapi`](https://github.com/smartspot2/edapi) by
+  [smartspot2](https://github.com/smartspot2) provides the third-party Ed API
+  integration used by this project. It is unofficial and released under the
+  GPL-3.0 license.
+- This project was developed with assistance from
+  [OpenAI Codex](https://developers.openai.com/codex/).
+
 ## Ed API adapter
 
 The project is pinned to `edapi` source revision
