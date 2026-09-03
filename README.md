@@ -3,8 +3,7 @@
 Runs locally on Ubuntu. It uses the read-only methods of the third-party
 `edapi` package to read new Ed Discussion threads, saves them in a local
 SQLite database, applies a conservative high-value filter, and (when an
-OpenRouter key is configured) extracts structured events. It does not send
-anything to WeChat.
+OpenRouter key is configured) extracts structured events.
 
 ## Setup
 
@@ -40,6 +39,14 @@ Later runs only process thread IDs not already in SQLite. Only threads that
 look staff-authored, announcements, or that contain high-value terms are sent
 to OpenRouter. The original content and API responses remain local in
 `data/campus_agent.sqlite3`.
+
+## Ubuntu daily update
+
+`python -m campus_agent.daily` runs the full daily workflow: it syncs Ed,
+updates the digest, displays a desktop notification with the top items, and
+saves the complete digest as a dated text file under
+`~/Desktop/Campus Digests/YYYY-MM-DD.txt`. The notification is best-effort,
+so the scheduled update still succeeds if no graphical desktop is active.
 
 ## Ed API adapter
 

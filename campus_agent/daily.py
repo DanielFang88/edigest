@@ -31,7 +31,7 @@ def main() -> None:
     print(sync.stdout, end="")
     print(digest.stdout, end="")
     now = datetime.now().astimezone()
-    archive = Path("/home/daniel/Desktop/Campus Digests")
+    archive = Path.home() / "Desktop" / "Campus Digests"
     archive.mkdir(parents=True, exist_ok=True)
     digest_file = archive / f"{now.date().isoformat()}.txt"
     digest_file.write_text(
