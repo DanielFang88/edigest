@@ -4,6 +4,7 @@ The adapter deliberately exposes only the three GET-style operations needed by
 the campus agent. It never calls edapi's create, edit, upload, lock, or unlock
 methods.
 """
+import time
 from typing import Any
 
 import requests
@@ -18,6 +19,11 @@ class EdAPIError(RuntimeError):
 
 
 class EdClient:
+    # DNS and Wi-Fi changes can briefly interrupt a request just as a laptop
+    # wakes up. Retrying those transport errors is safe: every exposed method
+    # is read-only, and SQLite de-duplicates a thread before storing it.
+    _RETRY_DELAYS_SECONDS = (0, 3, 10)
+
     def __init__(self, token: str):
         if not token:
             raise EdAPIError("ED_API_TOKEN is missing. Add it to .env locally.")
@@ -30,22 +36,29 @@ class EdClient:
         self.client.session.headers.update({"Authorization": f"Bearer {token}"})
 
     def _call(self, method, *args, **kwargs):
-        try:
-            # Ed's library does not expose a network-family option. Prefer
-            # IPv4 on this laptop because its IPv6 route has been verified to
-            # time out while the same Ed host responds over IPv4.
-            with prefer_ipv4():
-                return method(*args, **kwargs)
-        except EdAuthError as exc:
-            raise EdAPIError("Ed rejected the API token. Generate a fresh token in Ed Settings and try once.") from exc
-        except EdError as exc:
-            response = getattr(exc, "args", [{}])[0]
-            message = response.get("message", "Ed API request failed.") if isinstance(response, dict) else "Ed API request failed."
-            if isinstance(response, dict) and response.get("response", {}).get("error_name") == "browser_signature_banned":
-                message = "Ed/Cloudflare blocked this automated client (Error 1010). Stop retrying and contact Ed support."
-            raise EdAPIError(message) from exc
-        except requests.RequestException as exc:
-            raise EdAPIError(f"Could not reach Ed API: {exc}") from exc
+        last_network_error: requests.RequestException | None = None
+        for attempt, delay in enumerate(self._RETRY_DELAYS_SECONDS):
+            if delay:
+                time.sleep(delay)
+            try:
+                # Ed's library does not expose a network-family option. Prefer
+                # IPv4 on this laptop because its IPv6 route has been verified to
+                # time out while the same Ed host responds over IPv4.
+                with prefer_ipv4():
+                    return method(*args, **kwargs)
+            except EdAuthError as exc:
+                raise EdAPIError("Ed rejected the API token. Generate a fresh token in Ed Settings and try once.") from exc
+            except EdError as exc:
+                response = getattr(exc, "args", [{}])[0]
+                message = response.get("message", "Ed API request failed.") if isinstance(response, dict) else "Ed API request failed."
+                if isinstance(response, dict) and response.get("response", {}).get("error_name") == "browser_signature_banned":
+                    message = "Ed/Cloudflare blocked this automated client (Error 1010). Stop retrying and contact Ed support."
+                raise EdAPIError(message) from exc
+            except requests.RequestException as exc:
+                last_network_error = exc
+                if attempt < len(self._RETRY_DELAYS_SECONDS) - 1:
+                    continue
+        raise EdAPIError(f"Could not reach Ed API after {len(self._RETRY_DELAYS_SECONDS)} attempts: {last_network_error}") from last_network_error
 
     def courses(self) -> list[dict[str, Any]]:
         payload = self._call(self.client.get_user_info)
