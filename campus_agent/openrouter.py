@@ -23,6 +23,9 @@ Rules:
 - Treat extracted timezones cautiously: prefer the event wording, and do not invent missing dates.
 - Use headings: `## 今天`, `## 接下来 7 天`, and, only if needed, `## 以后`.
 - Under each heading, write short bullets beginning with the course code. Include required action and deadline/time when known.
+- Every input event has a `source_url`. End every bullet with its exact source in this form:
+  `原帖：<source_url>`. Copy the URL verbatim; never invent, modify, or omit it.
+- Do not merge events that have different `source_url` values, so every digest item remains independently verifiable.
 - If there are no qualifying items for a heading, omit it. Do not mention filtering or the underlying system.
 
 EVENTS:\n"""

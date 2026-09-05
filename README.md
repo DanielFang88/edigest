@@ -48,6 +48,10 @@ saves the complete digest as a dated text file under
 `~/Desktop/Campus Digests/YYYY-MM-DD.txt`. The notification is best-effort,
 so the scheduled update still succeeds if no graphical desktop is active.
 
+Each digest item ends with an Ed Discussion `原帖` link. It points to the
+specific source thread so the summary can be checked against the original
+post.
+
 ## Acknowledgments
 
 - [`edapi`](https://github.com/smartspot2/edapi) by

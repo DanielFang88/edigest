@@ -21,7 +21,9 @@ def notify(title: str, body: str, urgency: str = "normal") -> None:
 def main() -> None:
     try:
         sync = subprocess.run([sys.executable, "-m", "campus_agent", "sync", "--all-courses"], text=True, capture_output=True, check=True)
-        digest = subprocess.run([sys.executable, "-m", "campus_agent", "digest"], text=True, capture_output=True, check=True)
+        # Refresh rather than reuse a same-day cached digest: new Ed posts and
+        # the per-item source links must be reflected in the desktop copy.
+        digest = subprocess.run([sys.executable, "-m", "campus_agent", "digest", "--refresh"], text=True, capture_output=True, check=True)
     except subprocess.CalledProcessError as exc:
         details = (exc.stderr or exc.stdout or "Unknown error").strip()
         print(details, file=sys.stderr)

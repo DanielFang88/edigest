@@ -65,7 +65,9 @@ class Store:
 
     def digest_events(self) -> list[sqlite3.Row]:
         return self.conn.execute("""
-          SELECT e.*, t.title, t.course_id, COALESCE(c.code, 'Course ' || t.course_id) AS course
+          SELECT e.*, t.title, t.course_id,
+                 COALESCE(c.code, 'Course ' || t.course_id) AS course,
+                 'https://edstem.org/us/courses/' || t.course_id || '/discussion/' || t.thread_id AS source_url
           FROM events e JOIN threads t USING(thread_id)
           LEFT JOIN courses c ON c.course_id = t.course_id
           WHERE e.importance IN ('high', 'medium')
